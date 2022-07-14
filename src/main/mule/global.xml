@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:sap="http://www.mulesoft.org/schema/mule/sap"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sap:sap-config name="SAP_Config" doc:name="SAP Config" doc:id="eb5d9f36-e583-44cd-9255-d0d68f196a83" >
+		<sap:simple-connection-provider-connection username="${sap.username}" password="${sap.password}" systemNumber="${sap.systemNumber}" client="${sap.clientID}" applicationServerHost="${sap.host}" />
+	</sap:sap-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="191db299-49d2-4856-a071-9cd36b70c433" file="config.yaml" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="6ca5f676-8660-4aac-b759-5ccac143ccae" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+</mule>

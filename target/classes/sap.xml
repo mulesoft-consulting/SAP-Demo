@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:sap="http://www.mulesoft.org/schema/mule/sap"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<flow name="getCustomerByID" doc:id="34c3db80-0128-42f7-83e8-21465c828f45" >
+		<http:listener doc:name="GET customer/{customerID}" doc:id="50a6b7c6-02c4-43b7-8c08-cc6716eeb01a" config-ref="HTTP_Listener_config" path="/customer/{customerID}" allowedMethods="GET"/>
+		<sap:sync-rfc doc:name="BAPI_CUSTOMER_GETDETAIL2" doc:id="c50ae8e0-93c5-4a23-871e-3c06373ffe23" config-ref="SAP_Config" key="BAPI_CUSTOMER_GETDETAIL2">
+			<sap:content ><![CDATA[#[%dw 2.0
+output application/xml
+---
+{
+  BAPI_CUSTOMER_GETDETAIL2: {
+    "import": {
+    	CUSTOMERNO: attributes.uriParams.customerID
+    }
+  }
+}]]]></sap:content>
+		</sap:sync-rfc>
+		<logger level="INFO" doc:name="Logger" doc:id="cdbe9033-4817-48fb-b932-4e618cf93910" message="#[payload]"/>
+		<ee:transform doc:name="JSON Mapping" doc:id="b753a6d7-040d-4d62-bf64-65202cfb535a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var export = payload.BAPI_CUSTOMER_GETDETAIL2.export
+---
+{
+  Name: export.CUSTOMERADDRESS.NAME,
+  Street: export.CUSTOMERADDRESS.STREET,
+  City: export.CUSTOMERADDRESS.CITY,
+  Zip: export.CUSTOMERADDRESS.POSTL_CODE,
+  Country: export.CUSTOMERADDRESS.COUNTRY,
+  Phone: export.CUSTOMERADDRESS.TELEPHONE,
+  Fax: export.CUSTOMERCOMPANYDETAIL.FAX
+  
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getCustomers" doc:id="18dc659b-8ff2-4718-8e93-36a7f7289a09" >
+		<http:listener doc:name="GET customers" doc:id="d0c8d721-5a75-4a75-85a1-9387096cd668" config-ref="HTTP_Listener_config" path="/customers" allowedMethods="GET" />
+		<sap:sync-rfc key="BAPI_CUSTOMER_GETLIST" doc:name="BAPI_CUSTOMER_GETLIST" doc:id="6a059b6b-23bf-47a0-b569-a03851badad7" config-ref="SAP_Config" >
+			<sap:content ><![CDATA[#[%dw 2.0
+output application/xml
+---
+{
+	BAPI_CUSTOMER_GETLIST: {
+		"import": {
+			MAXROWS: "25"
+		},
+		tables: {
+			IDRANGE: {
+				row: {
+					SIGN: "I",
+					OPTION: "CP",
+					LOW: "A*"
+				}
+			}
+		}
+	}
+}]]]></sap:content>
+		</sap:sync-rfc>
+		<logger level="INFO" doc:name="Logger" doc:id="a464ba8f-e4ce-4e6e-af7d-b1e1b10513a2" message="#[payload]" />
+		<ee:transform doc:name="JSON Mapping" doc:id="72a50eae-c267-4b5c-bcbe-b4bf04593c71" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.BAPI_CUSTOMER_GETLIST.tables.ADDRESSDATA.*row map {
+  Name: $.NAME,
+  CustomerNumber: $.CUSTOMER,
+  Street: $.STREET,
+  City: $.CITY,
+  Zip: $.POSTL_CODE,
+  Country: $.COUNTRY,
+  Phone: $.TELEPHONE,
+  Fax: $.FAX
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="postCustomer" doc:id="60984c08-7bbc-47c9-b57f-d7caeba306ce" >
+		<http:listener doc:name="POST customer" doc:id="cb6249e5-5e6b-4db7-bf5d-07c65f5bbf78" config-ref="HTTP_Listener_config" path="/customer" allowedMethods="POST" />
+		<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;        "TITLE": "",&#10;        "TITLE_KEY": "",&#10;        "NAME": "Clark Kent",&#10;        "NAME_2": "",&#10;        "NAME_3": "",&#10;        "NAME_4": "",&#10;        "C_O_NAME": "",&#10;        "CITY": "Smallville",&#10;        "DISTRICT": "",&#10;        "CITY_NO": "",&#10;        "POSTL_COD1": "12345",&#10;        "POSTL_COD2": "",&#10;        "POSTL_COD3": "",&#10;        "PO_BOX": "",&#10;        "PO_BOX_CIT": "",&#10;        "DELIV_DIS": "",&#10;        "STREET": "Dirt Road",&#10;        "HOUSE_NO": "123",&#10;        "BUILDING": "",&#10;        "FLOOR": "",&#10;        "ROOM_NO": "",&#10;        "COUNTRY": "US",&#10;        "LANGU": "en",&#10;        "REGION": "",&#10;        "TEL1_NUMBR": "",&#10;        "TEL1_EXT": "",&#10;        "FAX_NUMBER": "",&#10;        "FAX_EXTENS": "",&#10;        "E_MAIL": "",&#10;        "COUNTRYISO": "us",&#10;        "LANGU_ISO": "en",&#10;        "CURRENCY": "usd",&#10;        "CURRENCY_ISO": "usd"&#10;}]' doc:name="Set Payload" doc:id="d310424c-241d-4f64-9ce7-3429974e066b" />
+		<sap:sync-rfc key="BAPI_CUSTOMER_CREATEFROMDATA1" doc:name="BAPI_CUSTOMER_CREATEFROMDATA1" doc:id="bb714c3c-154b-4a10-ab93-3f864a03bc2e" config-ref="SAP_Config" >
+			<sap:content ><![CDATA[#[%dw 2.0
+output application/xml
+---
+{
+	BAPI_CUSTOMER_CREATEFROMDATA1: {
+		"import": {
+			"PI_COMPANYDATA": {
+				"TITLE": payload.TITLE,
+				"TITLE_KEY": payload.TITLE_KEY,
+				"NAME": payload.NAME,
+				"NAME_2": payload.NAME_2,
+				"NAME_3": payload.NAME_3,
+				"NAME_4": payload.NAME_4,
+				"C_O_NAME": payload.C_O_NAME,
+				"CITY": payload.CITY,
+				"DISTRICT": payload.DISTRICT,
+				"CITY_NO": payload.CITY_NO,
+				"POSTL_COD1": payload.POSTL_COD1,
+				"POSTL_COD2": payload.POSTL_COD2,
+				"POSTL_COD3": payload.POSTL_COD3,
+				"PO_BOX": payload.PO_BOX,
+				"PO_BOX_CIT": payload.PO_BOX_CIT,
+				"DELIV_DIS": payload.DELIV_DIS,
+				"STREET": payload.STREET,
+				"HOUSE_NO": payload.HOUSE_NO,
+				"BUILDING": payload.BUILDING,
+				"FLOOR": payload.FLOOR,
+				"ROOM_NO": payload.ROOM_NO,
+				"COUNTRY": payload.COUNTRY,
+				"LANGU": payload.LANGU,
+				"REGION": payload.REGION,
+				"TEL1_NUMBR": payload.TEL1_NUMBR,
+				"TEL1_EXT": payload.TEL1_EXT,
+				"FAX_NUMBER": payload.FAX_NUMBER,
+				"FAX_EXTENS": payload.FAX_EXTENS,
+				"E_MAIL": payload.E_MAIL,
+				"COUNTRYISO": payload.COUNTRYISO,
+				"LANGU_ISO": payload.LANGU_ISO,
+				"CURRENCY": payload.CURRENCY,
+				"CURRENCY_ISO": payload.CURRENCY_ISO
+			}
+		}
+	}
+}]]]></sap:content>
+		</sap:sync-rfc>
+		<logger level="INFO" doc:name="Logger" doc:id="1e4ebfb7-0523-4f1d-aaab-6dd230320bad" message="#[payload]"/>
+		<ee:transform doc:name="JSON Mapping" doc:id="a040bd7e-dc7d-4de2-bcec-cd5c529bc7ea" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

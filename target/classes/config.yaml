@@ -1,0 +1,7 @@
+sap:
+  username: "???"
+  password: "???"
+  systemNumber: "00"
+  clientID: "800"
+  host: "sapidp.demos.mulesoft.com"
+  
